@@ -3,6 +3,8 @@ library(tidyverse)
 library(ggplot2)
 library(dplyr)
 library(broom)
+library(modelsummary)
+
 
 # Read and preprocess data
 # Only select variables starting with 'v_' and the group variable
@@ -17,9 +19,9 @@ names(data)[names(data) == "v_1"] <- "age"
 names(data)[names(data) == "v_9"] <- "climate_info"
 names(data)[names(data) == "v_16"] <- "climate_fear"
 data$group <- as.character(data$group)
-data$group[data$group == "7365788"] <- "pos"
-data$group[data$group == "7365789"] <- "neg"
-data$group[data$group == "7365790"] <- "control"
+data$group[data$group == "7365788"] <- "positiv"
+data$group[data$group == "7365789"] <- "negativ"
+data$group[data$group == "7365790"] <- "Kontrolle"
 
 # Check sample size and group distribution
 nrow(data) # 110
@@ -56,14 +58,6 @@ table(data$age) #
 data <- data %>% filter(age >= 18 & age <= 100)
 nrow(data) # 108
 
-# Age Histogram (ggplot2)
-# Visualizes the age distribution of the sample
-ggplot(data, aes(x = as.numeric(age))) +
-  geom_histogram(bins = 20, fill = "#0072B2", color = "white", alpha = 0.8) +
-  labs(title = "Age Distribution", x = "Age", y = "Count") +
-  theme_minimal(base_size = 14)
-ggsave("graphs/age_histogram.png", width = 8, height = 6)
-
 # Gender: check coding and plot
 # v_2 = female, v_3 = male, v_4 = diverse
 # Check for multiple selections and summarize
@@ -76,17 +70,11 @@ table(rowSums(data[,c("v_2","v_3","v_4")])) # check for multiple selections
 # Shows the gender distribution in the sample
 gender_counts <- colSums(data[,c("v_2","v_3","v_4")], na.rm=TRUE)
 gender_df <- data.frame(
-  Gender = c("Female", "Male", "Diverse"),
+  Gender = c("Weiblich", "Männlich", "Divers"),
   Count = as.numeric(gender_counts)
 )
-
-ggplot(gender_df, aes(x = Gender, y = Count, fill = Gender)) +
-  geom_bar(stat = "identity", color = "black") +
-  scale_fill_manual(values = c("Female" = "#E69F00", "Male" = "#56B4E9", "Diverse" = "#009E73")) +
-  labs(title = "Gender Distribution", y = "Count", x = "Gender") +
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "none")
-ggsave("graphs/gender_barplot.png", width = 8, height = 6)
+# Set the factor levels to control the order
+gender_df$Gender <- factor(gender_df$Gender, levels = c("Weiblich", "Männlich", "Divers"))
 
 # City Size: check and clean
 # v_10 to v_13 are city size categories
@@ -102,22 +90,18 @@ data <- data %>%
   filter(rowSums(select(., v_10:v_13), na.rm = TRUE) <= 1)
 nrow(data) # 105
 
-table(data$rnd_pg_7365787) # pos: 35; neg: 31; control: 39
+table(data$group) # pos: 35; neg: 31; control: 39
 
 # City Size Barplot (ggplot2)
 # Shows the distribution of city sizes in the sample
 city_size_counts <- colSums(data[,c("v_10","v_11","v_12","v_13")], na.rm=TRUE)
 city_size_df <- data.frame(
-  CitySize = c("over 100k", "20k-100k", "5k-20k", "under 5k"),
+  CitySize = c("über 100k", "20k-100k", "5k-20k", "unter 5k"),
   Count = as.numeric(city_size_counts)
 )
-ggplot(city_size_df, aes(x = CitySize, y = Count, fill = CitySize)) +
-  geom_bar(stat = "identity", color = "black") +
-  scale_fill_manual(values = c("over 100k" = "#0072B2", "20k-100k" = "#56B4E9", "5k-20k" = "#009E73", "under 5k" = "#E69F00")) +
-  labs(title = "City Size Distribution", y = "Count", x = "City Size") +
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "none")
-ggsave("graphs/city_size_barplot.png", width = 8, height = 6)
+# Set the factor levels to control the order (ascending by city size)
+city_size_df$CitySize <- factor(city_size_df$CitySize, levels = c("unter 5k", "5k-20k", "20k-100k", "über 100k"))
+
 
 # Education: check and plot
 summary(data$v_15)
@@ -127,10 +111,38 @@ data_edu_plot <- data %>% filter(as.numeric(v_15) <= 25)
 # Education Histogram (ggplot2)
 # Shows the distribution of years of education
 ggplot(data_edu_plot, aes(x = as.numeric(v_15))) +
-  geom_histogram(bins = 20, fill = "#009E73", color = "white", alpha = 0.8) +
-  labs(title = "Years of Education", x = "Years", y = "Count") +
+  geom_histogram(bins = 20, fill = "#1f4e79", color = "white", alpha = 0.8) +
+  labs(title = "Bildungsjahre", x = "Jahre", y = "Anzahl") +
   theme_minimal(base_size = 14)
 ggsave("graphs/education_histogram.png", width = 8, height = 6)
+
+# Age Histogram (ggplot2)
+# Visualizes the age distribution of the sample
+ggplot(data, aes(x = as.numeric(age))) +
+  geom_histogram(bins = 20, fill = "#1f4e79", color = "white", alpha = 0.8) +
+  labs(title = "Altersverteilung", x = "Alter", y = "Anzahl") +
+  theme_minimal(base_size = 14)
+ggsave("graphs/age_histogram.png", width = 8, height = 6)
+
+# Gender Barplot (ggplot2)
+# Shows the gender distribution in the sample
+ggplot(gender_df, aes(x = Gender, y = Count, fill = Gender)) +
+  geom_bar(stat = "identity", color = "black") +
+  scale_fill_manual(values = c("Weiblich" = "#1f4e79", "Männlich" = "#2e5c8a", "Divers" = "#3d6a9b")) +
+  labs(title = "Geschlechterverteilung", y = "Anzahl", x = "Geschlecht") +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+ggsave("graphs/gender_barplot.png", width = 8, height = 6)
+
+# City Size Barplot (ggplot2)
+# Shows the distribution of city sizes in the sample
+ggplot(city_size_df, aes(x = CitySize, y = Count, fill = CitySize)) +
+  geom_bar(stat = "identity", color = "black") +
+  scale_fill_manual(values = c("über 100k" = "#1f4e79", "20k-100k" = "#2e5c8a", "5k-20k" = "#3d6a9b", "unter 5k" = "#4c789c")) +
+  labs(title = "Stadtgrößenverteilung", y = "Anzahl", x = "Stadtgröße") +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+ggsave("graphs/city_size_barplot.png", width = 8, height = 6)
 
 # Info Klima: barplot of self-reported climate information
 # 1 = sehr wenig, ..., 5 = sehr viel
@@ -141,8 +153,8 @@ info_df <- data.frame(
 )
 ggplot(info_df, aes(x = Info, y = Count, fill = Info)) +
   geom_bar(stat = "identity", color = "black") +
-  scale_fill_manual(values = c("1" = "#D55E00", "2" = "#E69F00", "3" = "#F0E442", "4" = "#009E73", "5" = "#0072B2")) +
-  labs(title = "Ich bin sehr informiert über Klimaschutzthemen", y = "Count", x = "Info-Level") +
+  scale_fill_manual(values = c("1" = "#1f4e79", "2" = "#2e5c8a", "3" = "#3d6a9b", "4" = "#4c789c", "5" = "#5b86ad")) +
+  labs(title = "Ich bin sehr informiert über Klimaschutzthemen", y = "Anzahl", x = "Info-Level") +
   theme_minimal(base_size = 14) +
   theme(legend.position = "none")
 ggsave("graphs/info_klima_barplot.png", width = 8, height = 6)
@@ -156,8 +168,8 @@ sorgen_df <- data.frame(
 )
 ggplot(sorgen_df, aes(x = Sorgen, y = Count, fill = Sorgen)) +
   geom_bar(stat = "identity", color = "black") +
-  scale_fill_manual(values = c("1" = "#D55E00", "2" = "#E69F00", "3" = "#F0E442", "4" = "#009E73", "5" = "#0072B2")) +
-  labs(title = "Ich bin sehr besorgt über den Klimawandel", y = "Count", x = "Sorgen-Level") +
+  scale_fill_manual(values = c("1" = "#1f4e79", "2" = "#2e5c8a", "3" = "#3d6a9b", "4" = "#4c789c", "5" = "#5b86ad")) +
+  labs(title = "Ich bin sehr besorgt über den Klimawandel", y = "Anzahl", x = "Sorgen-Level") +
   theme_minimal(base_size = 14) +
   theme(legend.position = "none")
 ggsave("graphs/sorgen_klima_barplot.png", width = 8, height = 6)
@@ -179,7 +191,7 @@ summary(data$index_angst)
 # Shows the distribution of the behavioral index by group
 ggplot(data, aes(x = group, y = index_behav, fill = group)) +
   geom_boxplot(alpha = 0.7, outlier.color = "red") +
-  scale_fill_manual(values = c("pos" = "#D55E00", "neg" = "#0072B2", "control" = "#009E73")) +
+  scale_fill_manual(values = c("positiv" = "#1f4e79", "negativ" = "#2e5c8a", "Kontrolle" = "#3d6a9b")) +
   labs(title = "Verhaltensindex nach Gruppen", x = "Gruppe", y = "Verhaltensindex") +
   theme_minimal(base_size = 14)
 ggsave("graphs/index_behav_boxplot.png", width = 8, height = 6)
@@ -188,7 +200,7 @@ ggsave("graphs/index_behav_boxplot.png", width = 8, height = 6)
 # Shows the distribution of the anxiety index by group
 ggplot(data, aes(x = group, y = index_angst, fill = group)) +
   geom_boxplot(alpha = 0.7, outlier.color = "red") +
-  scale_fill_manual(values = c("pos" = "#D55E00", "neg" = "#0072B2", "control" = "#009E73")) +
+  scale_fill_manual(values = c("positiv" = "#1f4e79", "negativ" = "#2e5c8a", "Kontrolle" = "#3d6a9b")) +
   labs(title = "Sorgenindex nach Gruppen", x = "Gruppe", y = "Sorgenindex") +
   theme_minimal(base_size = 14)
 ggsave("graphs/index_angst_boxplot.png", width = 8, height = 6)
@@ -196,16 +208,16 @@ ggsave("graphs/index_angst_boxplot.png", width = 8, height = 6)
 # index_behav Histogram (ggplot2)
 # Shows the distribution of the behavioral index
 ggplot(data, aes(x = index_behav)) +
-  geom_histogram(bins = 20, fill = "#D55E00", color = "white", alpha = 0.8) +
-  labs(title = "Verhaltensindex", x = "Verhaltensindex", y = "Count") +
+  geom_histogram(bins = 20, fill = "#1f4e79", color = "white", alpha = 0.8) +
+  labs(title = "Verhaltensindex", x = "Verhaltensindex", y = "Anzahl") +
   theme_minimal(base_size = 14)
 ggsave("graphs/index_behav_histogram.png", width = 8, height = 6)
 
 # index_angst Histogram (ggplot2)
 # Shows the distribution of the anxiety index
 ggplot(data, aes(x = index_angst)) +
-  geom_histogram(bins = 20, fill = "#56B4E9", color = "white", alpha = 0.8) +
-  labs(title = "Sorgenindex", x = "Sorgenindex", y = "Count") +
+  geom_histogram(bins = 20, fill = "#1f4e79", color = "white", alpha = 0.8) +
+  labs(title = "Sorgenindex", x = "Sorgenindex", y = "Anzahl") +
   theme_minimal(base_size = 14)
 ggsave("graphs/index_angst_histogram.png", width = 8, height = 6)
 
@@ -213,7 +225,7 @@ ggsave("graphs/index_angst_histogram.png", width = 8, height = 6)
 # Visualizes the relationship between behavioral and anxiety indices, colored by group
 ggplot(data, aes(x = index_behav, y = index_angst, color = group)) +
   geom_point(size = 3, alpha = 0.8) +
-  scale_color_manual(values = c("pos" = "#D55E00", "neg" = "#0072B2", "control" = "#009E73")) +
+  scale_color_manual(values = c("positiv" = "#1f4e79", "negativ" = "#2e5c8a", "Kontrolle" = "#3d6a9b")) +
   labs(title = "Verhaltensindex vs. Sorgenindex", x = "Verhaltensindex", y = "Sorgenindex") +
   theme_minimal(base_size = 14) +
   geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
@@ -234,11 +246,11 @@ data %>%
 # Gender: get the column name where value is 1, then label
 # City size: get the column name where value is 1, then label
 data$gender <- apply(data[,c("v_2","v_3","v_4")], 1, function(x) which(x == 1)[1])
-data$gender <- factor(data$gender, labels = c("gender1", "gender2", "gender3"))
+data$gender <- factor(data$gender, labels = c("Weiblich", "Männlich", "Divers"))
 data$city_size <- apply(data[,c("v_10","v_11","v_12","v_13")], 1, function(x) which(x == 1)[1])
-data$city_size <- factor(data$city_size, labels = c("city1", "city2", "city3", "city4"))
+data$city_size <- factor(data$city_size, labels = c("über 100k", "20k-100k", "5k-20k", "unter 5k"))
 
-# Run ANOVA models for behavioral and anxiety indices, with and without attitude controls
+# ANOVA-Modelle für Verhaltens- und Sorgenindizes, mit und ohne EinstellungsKontrollvariablen
 anova_behav <- aov(index_behav ~ group + age + gender + city_size + climate_info + climate_fear, data = data)
 summary(anova_behav)
 
@@ -251,16 +263,15 @@ summary(anova_behav_short)
 anova_angst_short <- aov(index_angst ~ group + age + gender + city_size, data = data)
 summary(anova_angst_short)
 
-# Create a professional ANOVA summary table using modelsummary
-library(modelsummary)
+# Erstelle eine professionelle ANOVA-Zusammenfassungstabelle mit modelsummary
 models <- list(
-  "Behavior index (all controls)"  = anova_behav,
-  "Behavior index (no attitude questions)" = anova_behav_short,
-  "Anxiety index (all controls)"   = anova_angst,
-  "Anxiety index (no attitude questions)"  = anova_angst_short
+  "Verhaltensindex\n(alle Kontrollvariablen)"  = anova_behav,
+  "Verhaltensindex\n(ohne Einstellungsfragen)" = anova_behav_short,
+  "Sorgenindex\n(alle Kontrollvariablen)"   = anova_angst,
+  "Sorgenindex\n(ohne Einstellungsfragen)"  = anova_angst_short
 )
 
-# Print a classic table with stars, ready for copy-paste or export
+# Drucke eine klassische Tabelle mit Sternen, bereit zum Kopieren oder Exportieren
 modelsummary(
   models,
   stars = TRUE,
@@ -269,11 +280,75 @@ modelsummary(
   output = "markdown" # or "html", "latex", "docx", "pptx"
 )
 
-# Export as HTML for PowerPoint
+# Export als HTML für PowerPoint
 modelsummary(
   models,
   stars = TRUE,
   statistic = "({p.value})",
   gof_omit = "AIC|BIC|Log.Lik|Adj.R2|RMSE|Deviance|R2|Sigma|F|Num.Obs|Std.Errors",
+  coef_rename = c("group" = "Gruppe", "age" = "Alter", "gender" = "Geschlecht", "city_size" = "Stadtgröße", "climate_info" = "Klima-Info", "climate_fear" = "Klima-Sorgen"),
   output = "anova_table.html"
+)
+
+# Kruskal-Wallis Tests (nicht-parametrische Alternative zu ANOVA)
+kruskal_behav <- kruskal.test(index_behav ~ group, data = data)
+kruskal_angst <- kruskal.test(index_angst ~ group, data = data)
+
+# Ergebnisse ausgeben
+cat("\nKruskal-Wallis Test für Verhaltensindex nach Gruppe:\n")
+print(kruskal_behav)
+
+cat("\nKruskal-Wallis Test für Sorgenindex nach Gruppe:\n")
+print(kruskal_angst)
+
+# Zusätzliche ANOVA-Vergleiche
+# 1. Positiv vs. Negativ
+data_pos_neg <- data %>% filter(group %in% c("positiv", "negativ"))
+anova_pos_vs_neg_behav <- aov(index_behav ~ group + age + gender + city_size + climate_info + climate_fear, data = data_pos_neg)
+anova_pos_vs_neg_angst <- aov(index_angst ~ group + age + gender + city_size + climate_info + climate_fear, data = data_pos_neg)
+
+cat("\nANOVA: Positiv vs. Negativ - Verhaltensindex:\n")
+summary(anova_pos_vs_neg_behav)
+
+cat("\nANOVA: Positiv vs. Negativ - Sorgenindex:\n")
+summary(anova_pos_vs_neg_angst)
+
+# 2. Positiv & Negativ kombiniert vs. Kontrolle
+data$group_combined <- ifelse(data$group %in% c("positiv", "negativ"), "Behandlung", "Kontrolle")
+anova_treatment_vs_control_behav <- aov(index_behav ~ group_combined + age + gender + city_size + climate_info + climate_fear, data = data)
+anova_treatment_vs_control_angst <- aov(index_angst ~ group_combined + age + gender + city_size + climate_info + climate_fear, data = data)
+
+cat("\nANOVA: Behandlung (Positiv & Negativ) vs. Kontrolle - Verhaltensindex:\n")
+summary(anova_treatment_vs_control_behav)
+
+cat("\nANOVA: Behandlung (Positiv & Negativ) vs. Kontrolle - Sorgenindex:\n")
+summary(anova_treatment_vs_control_angst)
+
+# Versionen ohne Einstellungsfragen für die zusätzlichen Vergleiche
+anova_pos_vs_neg_behav_short <- aov(index_behav ~ group + age + gender + city_size, data = data_pos_neg)
+anova_pos_vs_neg_angst_short <- aov(index_angst ~ group + age + gender + city_size, data = data_pos_neg)
+
+anova_treatment_vs_control_behav_short <- aov(index_behav ~ group_combined + age + gender + city_size, data = data)
+anova_treatment_vs_control_angst_short <- aov(index_angst ~ group_combined + age + gender + city_size, data = data)
+
+# Erstelle eine professionelle ANOVA-Zusammenfassungstabelle für die zusätzlichen Vergleiche
+models_additional <- list(
+  "Positiv vs. Negativ - Verhaltensindex\n(alle Kontrollvariablen)" = anova_pos_vs_neg_behav,
+  "Positiv vs. Negativ - Verhaltensindex\n(ohne Einstellungsfragen)" = anova_pos_vs_neg_behav_short,
+  "Positiv vs. Negativ - Sorgenindex\n(alle Kontrollvariablen)" = anova_pos_vs_neg_angst,
+  "Positiv vs. Negativ - Sorgenindex\n(ohne Einstellungsfragen)" = anova_pos_vs_neg_angst_short,
+  "Behandlung vs. Kontrolle - Verhaltensindex\n(alle Kontrollvariablen)" = anova_treatment_vs_control_behav,
+  "Behandlung vs. Kontrolle - Verhaltensindex\n(ohne Einstellungsfragen)" = anova_treatment_vs_control_behav_short,
+  "Behandlung vs. Kontrolle - Sorgenindex\n(alle Kontrollvariablen)" = anova_treatment_vs_control_angst,
+  "Behandlung vs. Kontrolle - Sorgenindex\n(ohne Einstellungsfragen)" = anova_treatment_vs_control_angst_short
+)
+
+# Export als HTML für die zusätzlichen Vergleiche
+modelsummary(
+  models_additional,
+  stars = TRUE,
+  statistic = "({p.value})",
+  gof_omit = "AIC|BIC|Log.Lik|Adj.R2|RMSE|Deviance|R2|Sigma|F|Num.Obs|Std.Errors",
+  coef_rename = c("group" = "Gruppe", "group_combined" = "Gruppe", "age" = "Alter", "gender" = "Geschlecht", "city_size" = "Stadtgröße", "climate_info" = "Klima-Info", "climate_fear" = "Klima-Sorgen"),
+  output = "anova_additional_comparisons.html"
 )
