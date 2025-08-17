@@ -265,10 +265,8 @@ summary(anova_angst_short)
 
 # Erstelle eine professionelle ANOVA-Zusammenfassungstabelle mit modelsummary
 models <- list(
-  "Verhaltensindex\n(alle Kontrollvariablen)"  = anova_behav,
-  "Verhaltensindex\n(ohne Einstellungsfragen)" = anova_behav_short,
-  "Sorgenindex\n(alle Kontrollvariablen)"   = anova_angst,
-  "Sorgenindex\n(ohne Einstellungsfragen)"  = anova_angst_short
+  "Verhaltensindex" = anova_behav_short,
+  "Sorgenindex"  = anova_angst_short
 )
 
 # Drucke eine klassische Tabelle mit Sternen, bereit zum Kopieren oder Exportieren
@@ -333,14 +331,10 @@ anova_treatment_vs_control_angst_short <- aov(index_angst ~ group_combined + age
 
 # Erstelle eine professionelle ANOVA-Zusammenfassungstabelle für die zusätzlichen Vergleiche
 models_additional <- list(
-  "Positiv vs. Negativ - Verhaltensindex\n(alle Kontrollvariablen)" = anova_pos_vs_neg_behav,
-  "Positiv vs. Negativ - Verhaltensindex\n(ohne Einstellungsfragen)" = anova_pos_vs_neg_behav_short,
-  "Positiv vs. Negativ - Sorgenindex\n(alle Kontrollvariablen)" = anova_pos_vs_neg_angst,
-  "Positiv vs. Negativ - Sorgenindex\n(ohne Einstellungsfragen)" = anova_pos_vs_neg_angst_short,
-  "Behandlung vs. Kontrolle - Verhaltensindex\n(alle Kontrollvariablen)" = anova_treatment_vs_control_behav,
-  "Behandlung vs. Kontrolle - Verhaltensindex\n(ohne Einstellungsfragen)" = anova_treatment_vs_control_behav_short,
-  "Behandlung vs. Kontrolle - Sorgenindex\n(alle Kontrollvariablen)" = anova_treatment_vs_control_angst,
-  "Behandlung vs. Kontrolle - Sorgenindex\n(ohne Einstellungsfragen)" = anova_treatment_vs_control_angst_short
+  "Positiv vs. Negativ - Verhaltensindex" = anova_pos_vs_neg_behav_short,
+  "Positiv vs. Negativ - Sorgenindex" = anova_pos_vs_neg_angst_short,
+  "Behandlung vs. Kontrolle - Verhaltensindex" = anova_treatment_vs_control_behav_short,
+  "Behandlung vs. Kontrolle - Sorgenindex" = anova_treatment_vs_control_angst_short
 )
 
 # Export als HTML für die zusätzlichen Vergleiche
