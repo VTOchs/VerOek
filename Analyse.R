@@ -111,7 +111,7 @@ data_edu_plot <- data %>% filter(as.numeric(v_15) <= 25)
 # Education Histogram (ggplot2)
 # Shows the distribution of years of education
 ggplot(data_edu_plot, aes(x = as.numeric(v_15))) +
-  geom_histogram(bins = 20, fill = "#A23B72", color = "white", alpha = 0.8) +
+  geom_histogram(bins = 20, fill = "#3B82F6", color = "white", alpha = 0.8) +
   labs(title = "Bildungsjahre", x = "Jahre", y = "Anzahl") +
   theme_minimal(base_size = 14)
 ggsave("graphs/education_histogram.png", width = 8, height = 6)
@@ -119,7 +119,7 @@ ggsave("graphs/education_histogram.png", width = 8, height = 6)
 # Age Histogram (ggplot2)
 # Visualizes the age distribution of the sample
 ggplot(data, aes(x = as.numeric(age))) +
-  geom_histogram(bins = 20, fill = "#2E86AB", color = "white", alpha = 0.8) +
+  geom_histogram(bins = 20, fill = "#1E3A8A", color = "white", alpha = 0.8) +
   labs(title = "Altersverteilung", x = "Alter", y = "Anzahl") +
   theme_minimal(base_size = 14)
 ggsave("graphs/age_histogram.png", width = 8, height = 6)
@@ -128,7 +128,7 @@ ggsave("graphs/age_histogram.png", width = 8, height = 6)
 # Shows the gender distribution in the sample
 ggplot(gender_df, aes(x = Gender, y = Count, fill = Gender)) +
   geom_bar(stat = "identity", color = "black") +
-  scale_fill_manual(values = c("Weiblich" = "#2E86AB", "Männlich" = "#A23B72", "Divers" = "#F18F01")) +
+  scale_fill_manual(values = c("Weiblich" = "#1E3A8A", "Männlich" = "#3B82F6", "Divers" = "#60A5FA")) +
   labs(title = "Geschlechterverteilung", y = "Anzahl", x = "Geschlecht") +
   theme_minimal(base_size = 14) +
   theme(legend.position = "none")
@@ -138,7 +138,7 @@ ggsave("graphs/gender_barplot.png", width = 8, height = 6)
 # Shows the distribution of city sizes in the sample
 ggplot(city_size_df, aes(x = CitySize, y = Count, fill = CitySize)) +
   geom_bar(stat = "identity", color = "black") +
-  scale_fill_manual(values = c("über 100k" = "#2E86AB", "20k-100k" = "#A23B72", "5k-20k" = "#F18F01", "unter 5k" = "#C73E1D")) +
+  scale_fill_manual(values = c("über 100k" = "#1E3A8A", "20k-100k" = "#3B82F6", "5k-20k" = "#60A5FA", "unter 5k" = "#93C5FD")) +
   labs(title = "Stadtgrößenverteilung", y = "Anzahl", x = "Stadtgröße") +
   theme_minimal(base_size = 14) +
   theme(legend.position = "none")
@@ -153,7 +153,7 @@ info_df <- data.frame(
 )
 ggplot(info_df, aes(x = Info, y = Count, fill = Info)) +
   geom_bar(stat = "identity", color = "black") +
-  scale_fill_manual(values = c("1" = "#2E86AB", "2" = "#A23B72", "3" = "#F18F01", "4" = "#C73E1D", "5" = "#7209B7")) +
+  scale_fill_manual(values = c("1" = "#1E3A8A", "2" = "#3B82F6", "3" = "#60A5FA", "4" = "#93C5FD", "5" = "#DBEAFE")) +
   labs(title = "Ich bin sehr informiert über Klimaschutzthemen", y = "Anzahl", x = "Info-Level") +
   theme_minimal(base_size = 14) +
   theme(legend.position = "none")
